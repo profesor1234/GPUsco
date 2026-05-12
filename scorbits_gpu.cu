@@ -364,9 +364,10 @@ int main(int argc, char** argv) {
     curl_global_init(CURL_GLOBAL_ALL);
 #endif
     char address[128]="", node_host[128]="scorbits.com";
-    int node_port=443;
+    int node_port=443, gpu_id=-1;
     for(int i=1;i<argc;i++){
         if((strcmp(argv[i],"--address")==0||strcmp(argv[i],"-a")==0)&&i+1<argc) strncpy(address,argv[++i],sizeof(address)-1);
+        else if((strcmp(argv[i],"--gpu")==0||strcmp(argv[i],"-g")==0)&&i+1<argc) gpu_id=atoi(argv[++i]);
         else if((strcmp(argv[i],"--node")==0||strcmp(argv[i],"-n")==0)&&i+1<argc){
             i++; char* url=argv[i];
             if(strncmp(url,"https://",8)==0){url+=8;node_port=443;}
@@ -383,7 +384,9 @@ int main(int argc, char** argv) {
 
     int dev_count=0; cudaGetDeviceCount(&dev_count);
     if(dev_count==0){printf("[ERROR] No CUDA GPU!\n");return 1;}
-    int dev=0; cudaSetDevice(dev);
+    int dev=(gpu_id>=0 && gpu_id<dev_count) ? gpu_id : 0;
+    if(gpu_id<0 && dev_count>1) printf("[INFO] %d GPUs found. Use --gpu 0..%d to select. Using GPU 0.\n",dev_count,dev_count-1);
+    cudaSetDevice(dev);
     cudaDeviceProp prop; cudaGetDeviceProperties(&prop,dev);
     printf("[GPU 0] %s | %d SMs | CUDA %d.%d\n",prop.name,prop.multiProcessorCount,prop.major,prop.minor);
 
