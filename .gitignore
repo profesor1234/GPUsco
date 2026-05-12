@@ -1,0 +1,6 @@
+scorbits_gpu
+scorbits_gpu.exe
+*.o
+*.exp
+*.lib
+*.obj
